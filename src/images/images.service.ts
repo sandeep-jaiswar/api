@@ -1,5 +1,3 @@
-// images.service.ts
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,19 +9,26 @@ import { v4 as uuid } from 'uuid';
 export class ImagesService {
   private s3: S3;
 
-  constructor(private readonly imagesRepository: Repository<Image>) {
-    this.s3 = new S3();
+  constructor(
+    @InjectRepository(Image)
+    private readonly imagesRepository: Repository<Image>,
+  ) {
+    this.s3 = new S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
   }
 
   async uploadImage(file: Express.Multer.File): Promise<Image> {
     const { originalname } = file;
-    const bucketName = 'my-bucket';
+    const bucketName = process.env.AWS_PUBLIC_BUCKET_NAME;
     const filename = `${uuid()}-${originalname}`;
     const fileStream = file.buffer;
     const uploadParams = {
       Bucket: bucketName,
       Body: fileStream,
       Key: filename,
+      ContentType: 'image/jpg, image/png, image/jpeg',
     };
 
     await this.s3.upload(uploadParams).promise();
