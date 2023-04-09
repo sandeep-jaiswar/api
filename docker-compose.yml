@@ -1,0 +1,38 @@
+#define docker-compose file
+
+version: '3.1'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+# Define the database service
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./db:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${NF_DATABASE_DATABASE}
+      MYSQL_USER: ${NF_DATABASE_USERNAME}
+      MYSQL_PASSWORD: ${NF_DATABASE_PASSWORD}
+      MYSQL_HOSt: ${NF_DATABASE_HOST}
+      
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+    - "5432:5432"
+    volumes:
+    - /data/postgres:/data/postgres
+    env_file:
+    - .env
+    networks:
+    - postgres
