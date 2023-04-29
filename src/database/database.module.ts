@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { databaseProviders } from './database.providers';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as fs from 'fs';
 
 @Module({
   imports: [
@@ -16,6 +17,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         password: configService.get('NF_DATABASE_PASSWORD'),
         database: configService.get('NF_DATABASE_DATABASE'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        ssl: {
+          ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
+        },
         synchronize: true,
       }),
     }),

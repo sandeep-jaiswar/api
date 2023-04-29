@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import * as fs from 'fs';
 
 export const databaseProviders = [
   {
@@ -15,6 +16,9 @@ export const databaseProviders = [
         database: configService.get('NF_DATABASE_DATABASE'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: true,
+        ssl: {
+          ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
+        },
       });
       try {
         if (!dataSource.isInitialized) {
