@@ -2,12 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Issuer, Client } from 'openid-client';
 import { TokenSet } from 'openid-client';
 import { ConfigService } from '@nestjs/config';
+import * as jwt from 'jsonwebtoken';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   private _client: Client;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly userService: UsersService,
+  ) {
     this.initializeClient();
   }
 
@@ -41,5 +46,40 @@ export class AuthService {
   async refresh(refreshToken: string): Promise<TokenSet> {
     const tokenSet = await this.client.refresh(refreshToken);
     return tokenSet;
+  }
+
+  async introspect(token: string) {
+    const introspection = await this.client.introspect(token);
+    return introspection;
+  }
+
+  async revoke(token: string) {
+    await this.client.revoke(token);
+  }
+
+  async generateTokens(tokenSet: TokenSet): Promise<any> {
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+    const accessTokenExpiry = this.configService.get<string>(
+      'ACCESS_TOKEN_EXPIRY',
+    );
+    const refreshTokenExpiry = this.configService.get<string>(
+      'REFRESH_TOKEN_EXPIRY',
+    );
+    const userInfo = await this.client.userinfo(tokenSet.access_token);
+    const user = {
+      email: userInfo.email,
+      name: userInfo.name,
+    };
+    const accessToken = jwt.sign(user, jwtSecret, {
+      expiresIn: accessTokenExpiry,
+    });
+    const refreshToken = jwt.sign(user, jwtSecret, {
+      expiresIn: refreshTokenExpiry,
+    });
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_in: tokenSet.expires_in,
+    };
   }
 }

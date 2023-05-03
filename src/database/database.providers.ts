@@ -16,9 +16,7 @@ export const databaseProviders = [
         database: configService.get('NF_DATABASE_DATABASE'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: true,
-        ssl: {
-          ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
-        },
+        ssl: true,
       });
       try {
         if (!dataSource.isInitialized) {

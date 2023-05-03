@@ -2,12 +2,14 @@ import { Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly userService: UsersService,
   ) {}
 
   @Get('login')
@@ -26,12 +28,18 @@ export class AuthController {
       this.configService.get<string>('REDIRECT_URI'),
       params,
     );
+    const data = await this.authService.generateTokens(tokenSet);
+    let user;
+    user = await this.userService.findOneByEmail(tokenSet.claims().email);
+    if (!user) {
+      user = await this.userService.create({
+        ...tokenSet.claims(),
+      });
+    }
+    res.cookie('access_token', data.access_token, { httpOnly: true });
+    res.cookie('refresh_token', data.refresh_token, { httpOnly: true });
     res.send({
-      access_token: tokenSet.access_token,
-      id_token: tokenSet.id_token,
-      refresh_token: tokenSet.refresh_token,
-      ...tokenSet,
+      ...user,
     });
-    // Here you can use the `tokenSet` to authenticate the user and generate access and refresh tokens
   }
 }

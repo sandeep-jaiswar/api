@@ -20,6 +20,7 @@ import * as fs from 'fs';
         ssl: {
           ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
         },
+        autoLoadEntities: true,
         synchronize: true,
       }),
     }),
