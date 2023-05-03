@@ -17,9 +17,10 @@ import * as fs from 'fs';
         password: configService.get('NF_DATABASE_PASSWORD'),
         database: configService.get('NF_DATABASE_DATABASE'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        ssl: {
-          ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
-        },
+        // ssl: {
+        //   ca: fs.readFileSync(process.env.SSL_CA_CERTIFICATES),
+        // },
+        ssl: true,
         autoLoadEntities: true,
         synchronize: true,
       }),
